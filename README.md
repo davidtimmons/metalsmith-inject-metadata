@@ -60,7 +60,7 @@ Results in file key `gotham`:
 "Batman is one half of the dynamic duo!"
 ```
 
-And file key `contents` (as well as file `src/build.md`):
+And file `build/index.md` (as well as the buffer at file key `contents`):
 
 ```
 Have you read the latest Batman comic?
@@ -94,7 +94,7 @@ Source file `src/index.md`:
 ---
 gotham:
   vigilantes:
-    people: {{ superheroes.bats.gotham }} is one half of the dynamic duo!
+    people: {{ superheroes.bats.gotham }} is a vigilante!
 ---
 Have you read the latest {{ superheroes.bats.gotham }} comic?
 ```
@@ -102,10 +102,10 @@ Have you read the latest {{ superheroes.bats.gotham }} comic?
 Results in file key `gotham.vigilantes.people`:
 
 ```
-"Batman is one half of the dynamic duo!"
+"Batman is a vigilante!"
 ```
 
-And file key `contents` (as well as file `src/build.md`):
+And file `build/index.md` (as well as the buffer at file key `contents`):
 
 ```
 Have you read the latest Batman comic?
@@ -247,7 +247,7 @@ Source file `src/index.md`:
 ---
 gotham:
   vigilantes:
-    bats: {{ hero }} is one half of the dynamic duo!
+    bats: {{ hero }} is a vigilante!
 ---
 ```
 

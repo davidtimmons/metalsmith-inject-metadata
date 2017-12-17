@@ -1,3 +1,7 @@
+1.0.3 - December 17, 2017
+-------------------------
++ Correct README examples and adjust formatting.
+
 1.0.2 - December 17, 2017
 -------------------------
 + Add README notes on using nested metadata keys and front-matter keys.
