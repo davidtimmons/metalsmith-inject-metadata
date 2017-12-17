@@ -118,4 +118,33 @@ describe('metalsmith-inject-metadata', () => {
                 done();
             });
     });
+
+    it('should inject nested metadata values into nested file objects', (done) => {
+        Metalsmith('test/fixtures/nested')
+            .metadata({
+                superheroes: {
+                    bats: {
+                        gotham: 'Batman',
+                    },
+                },
+            })
+            .use(injectMetadata({
+                ...opts,
+                metadataKeys: 'superheroes.bats.gotham',
+                // fileKeys: ['contents', 'gotham'], // Optional!
+            }))
+            .use(debug())
+            .build(function(err, files) { // eslint-disable-line
+                if (err) return done(err);
+                Object.keys(files).forEach((file) => {
+                    const fileData = files[file];
+                    const gothamVigilantsBats = 'Batman is one half of the dynamic duo!';
+                    const contents = 'Have you read the latest Batman comic?\n';
+
+                    expect(fileData.gotham.vigilantes.bats).to.equal(gothamVigilantsBats);
+                    expect(fileData.contents.toString()).to.equal(contents);
+                });
+                done();
+            });
+    });
 });

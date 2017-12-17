@@ -26,7 +26,9 @@ $ npm install metalsmith-inject-metadata
 
 **[⬆ back to top](#metalsmith-inject-metadata)**
 
-## Example
+## Examples
+
+### Basic
 
 Configuration in `metalsmith.json`:
 
@@ -48,7 +50,8 @@ Source file `src/index.md`:
 ---
 gotham: {{ hero }} is one half of the dynamic duo!
 ---
-Have you read the latest {{ hero }} comic? Look at this amazing cover: {{ images }}/batman.jpg!
+Have you read the latest {{ hero }} comic?
+Look at this amazing cover: {{ images }}/batman.jpg!
 ```
 
 Results in file key `gotham`:
@@ -60,7 +63,52 @@ Results in file key `gotham`:
 And file key `contents` (as well as file `src/build.md`):
 
 ```
-Have you read the latest Batman comic? Look at this amazing cover: path/to/batman/images/batman.jpg!
+Have you read the latest Batman comic?
+Look at this amazing cover: path/to/batman/images/batman.jpg!
+```
+
+### Nested Objects
+
+Configuration in `metalsmith.json`:
+
+```json
+{
+  "metadata": {
+    "superheroes": {
+      "bats": {
+        "gotham": "Batman"
+      }
+    }
+  },
+  "plugins": {
+    "metalsmith-inject-metadata": {
+      "metadataKeys": "superheroes.bats.gotham"
+    }
+  }
+}
+```
+
+Source file `src/index.md`:
+
+```
+---
+gotham:
+  vigilantes:
+    people: {{ superheroes.bats.gotham }} is one half of the dynamic duo!
+---
+Have you read the latest {{ superheroes.bats.gotham }} comic?
+```
+
+Results in file key `gotham.vigilantes.people`:
+
+```
+"Batman is one half of the dynamic duo!"
+```
+
+And file key `contents` (as well as file `src/build.md`):
+
+```
+Have you read the latest Batman comic?
 ```
 
 **[⬆ back to top](#metalsmith-inject-metadata)**
@@ -109,8 +157,41 @@ to select source files.
 #### metadataKeys
 
 Key names matching the Metalsmith `metadata` object. Only the key(s) listed here will be injected
-into file data. Keys that do not match the `metadata` object will be ignored. Use `*` or `['*']`
-to select all `metadata` keys.
+into file data. Keys that do not match the `metadata` object will be ignored. Use wildcards
+`'*'` or `['*']` to select all `metadata` keys.
+
+Nested metadata keys can be referenced using dot notation. When injecting nested metadata keys,
+the wildcard option will no longer work.
+
+
+Example:
+
+Configuration in `metalsmith.json`:
+
+```json
+{
+  "metadata": {
+    "superheroes": {
+      "bats": {
+        "gotham": "Batman"
+      }
+    }
+  },
+  "plugins": {
+    "metalsmith-inject-metadata": {
+      "metadataKeys": "superheroes.bats.gotham"
+    }
+  }
+}
+```
+
+Source file `src/index.md`:
+
+```
+---
+hero: {{ superheroes.bats.gotham }} is one half of the dynamic duo!
+---
+```
 
 #### metadataKeyBounds
 
@@ -136,7 +217,39 @@ Example: ` }}`
 
 Key names matching the Metalsmith file object. Only the key(s) listed here will be checked
 against the list of injected `metadata` keys. Keys that do not match a file key will be ignored.
-Use `*` or `['*']` to select all file keys.
+Use wildcards `'*'` or `['*']` to select all file keys.
+
+Nested front-matter file keys are referenced using the top-level key. Wildcards will also work.
+
+Example:
+
+_**Note:** `fileKeys` is optional here._
+
+Configuration in `metalsmith.json`:
+
+
+```json
+{
+  "metadata": {
+    "hero": "Batman"
+  },
+  "plugins": {
+    "metalsmith-inject-metadata": {
+      "fileKeys": "gotham"
+    }
+  }
+}
+```
+
+Source file `src/index.md`:
+
+```
+---
+gotham:
+  vigilantes:
+    bats: {{ hero }} is one half of the dynamic duo!
+---
+```
 
 **[⬆ back to top](#metalsmith-inject-metadata)**
 
