@@ -9,7 +9,7 @@ const Rewire = require('rewire');
 const Sinon = require('sinon'); // eslint-disable-line
 const plugin = Rewire('../lib/index');
 const _setArgDefaults = plugin.__get__('_setArgDefaults');
-// const { attachPreview, choosePreviewFunction } = require('../lib/preview');
+const { injectFile } = require('../lib/inject-metadata');
 
 
 ///////////
@@ -61,52 +61,70 @@ describe('index.js', () => {
         });
     });
 
-    // context('plugin()', () => {
-    //     beforeEach('stub the private functions', () => {
-    //         plugin.__set__('attachPreview', Sinon.stub());
-    //         plugin.__set__('choosePreviewFunction', Sinon.stub());
-    //         // Returns the default value.
-    //         plugin.__set__('_setArgDefaults', Sinon.stub().returnsArg(3));
-    //     });
+    context('plugin()', () => {
+        const files = {
+            a: { hero: 'nightwing', city: 'blüdhaven' },
+            b: { hero: 'robin', police: 'gordon' },
+            c: { hero: 'batgirl' },
+        };
+        const _Metalsmith = {
+            metadata: () => ({
+                alfa: 1,
+                bravo: 2,
+                charlie: 3,
+            }),
+        };
 
-    //     after('reset the private functions', () => {
-    //         plugin.__set__('attachPreview', attachPreview);
-    //         plugin.__set__('choosePreviewFunction', choosePreviewFunction);
-    //         plugin.__set__('_setArgDefaults', _setArgDefaults);
-    //     });
+        beforeEach('stub the private functions', () => {
+            // Returns the default value.
+            plugin.__set__('_setArgDefaults', Sinon.stub().callsFake(
+                (...args) => args[0] || args[3]
+            ));
+            plugin.__set__('injectFile', Sinon.stub());
+        });
 
-    //     it('should enforce types for all plugin configuration options', () => {
-    //         const stub = plugin.__get__('_setArgDefaults');
+        after('reset the private functions', () => {
+            plugin.__set__('_setArgDefaults', _setArgDefaults);
+            plugin.__set__('injectFile', injectFile);
+        });
 
-    //         // Trigger the default logic.
-    //         plugin();
-    //         expect(stub.callCount).to.equal(10);
+        it('should enforce types for all plugin configuration options', () => {
+            const stub = plugin.__get__('_setArgDefaults');
+            plugin();
+            expect(stub.callCount).to.equal(6);
+        });
 
-    //         // Trigger the alternate character preview logic.
-    //         plugin({ characters: {} });
-    //         expect(stub.callCount - 10).to.equal(11);
-    //     });
+        it('should do nothing if the file matching pattern produces no matches', () => {
+            const stub = plugin.__get__('injectFile');
+            plugin({ pattern: '*.md' })(files, _Metalsmith, _ => '');
+            expect(stub.callCount).to.equal(0);
+        });
 
-    //     it('should do nothing if the file matching pattern produces no matches', () => {
-    //         const pattern = '*.md';
-    //         const stub = plugin.__get__('attachPreview');
-    //         plugin.__set__('_setArgDefaults', Sinon.stub().callsFake(
-    //             (...args) => {
-    //                 if (args[0] === pattern) {
-    //                     return pattern;
-    //                 }
-    //                 return args[3];
-    //             }
-    //         ));
+        it('should do nothing if the given file keys are not in the file objects', () => {
+            const stub = plugin.__get__('injectFile');
+            plugin({ fileKeys: ['villain'] })(files, _Metalsmith, _ => '');
+            expect(stub.callCount).to.equal(0);
+        });
 
-    //         plugin({ pattern: '*.md' })({ 'test.txt': true }, undefined, _ => '');
-    //         expect(stub.callCount).to.equal(0);
-    //     });
+        it('should inject all metadata keys when using a wildcard', () => {
+            const stub = plugin.__get__('injectFile');
+            const opts = { fileKeys: ['hero'], metadataKeys: ['*'] };
+            plugin(opts)(files, _Metalsmith, _ => '');
+            expect(stub.callCount).to.equal(9);
+        });
 
-    //     it('should attach a preview to every matched file', () => {
-    //         const stub = plugin.__get__('attachPreview');
-    //         plugin()({ a: true, b: true, c: true }, undefined, _ => '');
-    //         expect(stub.callCount).to.equal(3);
-    //     });
-    // });
+        it('should inject into all files when using a wildcard', () => {
+            const stub = plugin.__get__('injectFile');
+            const opts = { fileKeys: ['*'], metadataKeys: ['alfa'] };
+            plugin(opts)(files, _Metalsmith, _ => '');
+            expect(stub.callCount).to.equal(5);
+        });
+
+        it('should inject specific metadata keys into specific file keys', () => {
+            const stub = plugin.__get__('injectFile');
+            const opts = { fileKeys: ['police', 'city'], metadataKeys: ['alfa', 'charlie'] };
+            plugin(opts)(files, _Metalsmith, _ => '');
+            expect(stub.callCount).to.equal(4);
+        });
+    });
 });

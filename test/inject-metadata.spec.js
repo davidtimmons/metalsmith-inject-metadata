@@ -10,7 +10,6 @@ const Sinon = require('sinon'); // eslint-disable-line
 const InjectMetadata = Rewire('../lib/inject-metadata');
 const _canHaveKeys = InjectMetadata.__get__('_canHaveKeys');
 const _getNestedKeyValue = InjectMetadata.__get__('_getNestedKeyValue');
-const _injectNestedFileObject = InjectMetadata.__get__('_injectNestedFileObject');
 const { injectFile, searchAndReplace } = InjectMetadata;
 
 
@@ -79,72 +78,123 @@ describe('inject-metadata.js', () => {
         });
     });
 
-    context('_injectNestedFileObject()', () => {
-        it('should throw an error if <fileValueObject> is not an object', () => {
-            expect(_ => _injectNestedFileObject()).to.throw(/Cannot convert .+? to object/);
+    context('injectFile()', () => {
+        let fileData;
+        const metadata = {
+            teams: {
+                justiceLeague: 'good guys',
+                legionOfDoom: 'bad guys',
+            },
+            hero: 'Batman',
+        };
+        const metaKeyBounds = { left: '{{ ', right: ' }}' };
+
+        beforeEach('stub external functions and reset values', () => {
+            InjectMetadata.__set__('searchAndReplace', Sinon.stub().returns('42'));
+            fileData = {
+                a: Buffer.from('The best hero is {{ hero }}.'),
+                b: { gotham: { city: 'robin' } },
+                c: 3,
+                d: 'joker',
+            };
         });
 
-        it('should mutate each object value when that value is not an array', () => {
-            const obj = { a: true, b: true, c: true };
-            const stub = Sinon.stub().returns(42);
-            _injectNestedFileObject(obj, stub);
-            expect(stub.calledThrice).to.be.true;
-            Object.keys(obj).forEach((key) => {
-                expect(obj[key]).to.equal(42);
-            });
+        after('reset external function', () => {
+            InjectMetadata.__set__('searchAndReplace', searchAndReplace);
         });
 
-        it('should set object values using an identity function when not given a function', () => {
-            const obj = { a: 42, b: 43, c: 44 };
-            _injectNestedFileObject(obj);
-            Object.keys(obj).forEach((key, i) => {
-                expect(obj[key]).to.equal(42 + i);
-            });
+        it('should not modify file data if there is no matching metadata value', () => {
+            const _fileData = { ...fileData };
+            injectFile(_fileData, 'a', metadata, 'villain', metaKeyBounds);
+            expect(_fileData).to.deep.equal(fileData);
         });
 
-        it('should recursively mutate the object when there are nested objects', () => {
-            const obj = { a: { b: { c: true } } };
-            const stub = Sinon.stub().returns(42);
-            _injectNestedFileObject(obj, stub);
+        it('should not modify file data if the file value is not an accepted type', () => {
+            const _fileData = { ...fileData };
+            injectFile(_fileData, 'c', metadata, 'hero', metaKeyBounds);
+            expect(_fileData).to.deep.equal(fileData);
+        });
+
+        it('should transform text into a string if the file value is a string', () => {
+            expect(fileData.d).to.be.a('string');
+            const stub = InjectMetadata.__get__('searchAndReplace');
+            injectFile(fileData, 'd', metadata, 'hero', metaKeyBounds);
             expect(stub.calledOnce).to.be.true;
-            expect(obj.a.b.c).to.equal(42);
+            expect(fileData.d).to.be.a('string');
         });
 
-        it('should mutate each non-object value in an array', () => {
-            const obj = { arr: [1, 'batman', true, null, undefined] };
-            const stub = Sinon.stub().returns(42);
-            _injectNestedFileObject(obj, stub);
+        it('should transform text into a new Buffer if the file value is a Buffer', () => {
+            expect(Buffer.isBuffer(fileData.a)).to.be.true;
+            const stub = InjectMetadata.__get__('searchAndReplace');
+            injectFile(fileData, 'a', metadata, 'hero', metaKeyBounds);
+            expect(stub.calledOnce).to.be.true;
+            expect(Buffer.isBuffer(fileData.a)).to.be.true;
+        });
+
+        it('should recursively mutate an object if the file value is an object', () => {
+            const _injectFile = Sinon.spy(injectFile);
+            InjectMetadata.__set__('injectFile', _injectFile);
+
+            _injectFile(fileData, 'b', metadata, 'hero', metaKeyBounds);
+            const results = InjectMetadata.__get__('injectFile');
+
+            expect(results.callCount).to.equal(3);
+            expect(results.args[0][1]).to.equal('b');
+            expect(results.args[1][1]).to.equal('gotham');
+            expect(results.args[2][1]).to.equal('city');
+
+            InjectMetadata.__set__('injectFile', injectFile);
+        });
+
+        it('should ignore non-accepted types found in an array', () => {
+            const arr = [1, true, null, undefined];
+            const obj = { arr: [...arr] };
+            injectFile(obj, 'arr', metadata, 'hero', metaKeyBounds);
+            obj.arr.forEach((val, i) => {
+                expect(val).to.equal(arr[i]);
+            });
+        });
+
+        it('should mutate each string or Buffer value in an array', () => {
+            const obj = { arr: ['batman', Buffer.from('joker')] };
+            injectFile(obj, 'arr', metadata, 'hero', metaKeyBounds);
             obj.arr.forEach((val) => {
-                expect(val).to.equal(42);
+                if (typeof val === 'string') {
+                    expect(val).to.equal('42');
+                } else {
+                    expect(val.toString()).to.equal('42');
+                }
             });
         });
 
         it('should mutate each object and array value in an array', () => {
-            const sample = { a: { b: { c: true } } };
+            const sample = { a: { b: { c: 'batman' } } };
             const obj = { arr: [{ ...sample }, [{ ...sample }], { ...sample }] };
-            const stub = Sinon.stub().returns(42);
-            _injectNestedFileObject(obj, stub);
+            injectFile(obj, 'arr', metadata, 'hero', metaKeyBounds);
             obj.arr.forEach((value) => {
                 let val = value;
                 if (Array.isArray(val)) {
                     [val] = val;
                 }
-                expect(val.a.b.c).to.equal(42);
+                expect(val.a.b.c).to.equal('42');
             });
         });
     });
 
-    context('injectFile()', () => {
-        beforeEach('stub external functions', () => {
-            InjectMetadata.__set__('_getNestedKeyValue', Sinon.stub());
-            InjectMetadata.__set__('_injectNestedFileObject', Sinon.stub());
+    context('searchAndReplace()', () => {
+        const query = '{{ hero }}';
+        const replacement = 'Batman';
+
+        it('should return the search text if the query was not found', () => {
+            const searchText = 'The greatest threat to Gotham City is {{ villain }}!';
+            const result = searchAndReplace(query, replacement, searchText);
+            expect(result).to.equal(searchText);
         });
 
-        after('reset external function', () => {
-            InjectMetadata.__set__('_getNestedKeyValue', _getNestedKeyValue);
-            InjectMetadata.__set__('_injectNestedFileObject', _injectNestedFileObject);
+        it('should replace all instances of the query in the seach text', () => {
+            const searchText = '{{ hero }} is pretty great. I\'m {{ hero }}!';
+            const result = searchAndReplace(query, replacement, searchText);
+            expect(result).to.equal('Batman is pretty great. I\'m Batman!');
         });
-
-        it('');
     });
 });
