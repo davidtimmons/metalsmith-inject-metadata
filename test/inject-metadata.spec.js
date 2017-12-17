@@ -87,7 +87,7 @@ describe('inject-metadata.js', () => {
             },
             hero: 'Batman',
         };
-        const metaKeyBounds = { left: '{{ ', right: ' }}' };
+        const metadataKeyBounds = { left: '{{ ', right: ' }}' };
 
         beforeEach('stub external functions and reset values', () => {
             InjectMetadata.__set__('searchAndReplace', Sinon.stub().returns('42'));
@@ -105,20 +105,20 @@ describe('inject-metadata.js', () => {
 
         it('should not modify file data if there is no matching metadata value', () => {
             const _fileData = { ...fileData };
-            injectFile(_fileData, 'a', metadata, 'villain', metaKeyBounds);
+            injectFile(_fileData, 'a', metadata, 'villain', metadataKeyBounds);
             expect(_fileData).to.deep.equal(fileData);
         });
 
         it('should not modify file data if the file value is not an accepted type', () => {
             const _fileData = { ...fileData };
-            injectFile(_fileData, 'c', metadata, 'hero', metaKeyBounds);
+            injectFile(_fileData, 'c', metadata, 'hero', metadataKeyBounds);
             expect(_fileData).to.deep.equal(fileData);
         });
 
         it('should transform text into a string if the file value is a string', () => {
             expect(fileData.d).to.be.a('string');
             const stub = InjectMetadata.__get__('searchAndReplace');
-            injectFile(fileData, 'd', metadata, 'hero', metaKeyBounds);
+            injectFile(fileData, 'd', metadata, 'hero', metadataKeyBounds);
             expect(stub.calledOnce).to.be.true;
             expect(fileData.d).to.be.a('string');
         });
@@ -126,7 +126,7 @@ describe('inject-metadata.js', () => {
         it('should transform text into a new Buffer if the file value is a Buffer', () => {
             expect(Buffer.isBuffer(fileData.a)).to.be.true;
             const stub = InjectMetadata.__get__('searchAndReplace');
-            injectFile(fileData, 'a', metadata, 'hero', metaKeyBounds);
+            injectFile(fileData, 'a', metadata, 'hero', metadataKeyBounds);
             expect(stub.calledOnce).to.be.true;
             expect(Buffer.isBuffer(fileData.a)).to.be.true;
         });
@@ -135,7 +135,7 @@ describe('inject-metadata.js', () => {
             const _injectFile = Sinon.spy(injectFile);
             InjectMetadata.__set__('injectFile', _injectFile);
 
-            _injectFile(fileData, 'b', metadata, 'hero', metaKeyBounds);
+            _injectFile(fileData, 'b', metadata, 'hero', metadataKeyBounds);
             const results = InjectMetadata.__get__('injectFile');
 
             expect(results.callCount).to.equal(3);
@@ -149,7 +149,7 @@ describe('inject-metadata.js', () => {
         it('should ignore non-accepted types found in an array', () => {
             const arr = [1, true, null, undefined];
             const obj = { arr: [...arr] };
-            injectFile(obj, 'arr', metadata, 'hero', metaKeyBounds);
+            injectFile(obj, 'arr', metadata, 'hero', metadataKeyBounds);
             obj.arr.forEach((val, i) => {
                 expect(val).to.equal(arr[i]);
             });
@@ -157,7 +157,7 @@ describe('inject-metadata.js', () => {
 
         it('should mutate each string or Buffer value in an array', () => {
             const obj = { arr: ['batman', Buffer.from('joker')] };
-            injectFile(obj, 'arr', metadata, 'hero', metaKeyBounds);
+            injectFile(obj, 'arr', metadata, 'hero', metadataKeyBounds);
             obj.arr.forEach((val) => {
                 if (typeof val === 'string') {
                     expect(val).to.equal('42');
@@ -170,7 +170,7 @@ describe('inject-metadata.js', () => {
         it('should mutate each object and array value in an array', () => {
             const sample = { a: { b: { c: 'batman' } } };
             const obj = { arr: [{ ...sample }, [{ ...sample }], { ...sample }] };
-            injectFile(obj, 'arr', metadata, 'hero', metaKeyBounds);
+            injectFile(obj, 'arr', metadata, 'hero', metadataKeyBounds);
             obj.arr.forEach((value) => {
                 let val = value;
                 if (Array.isArray(val)) {
