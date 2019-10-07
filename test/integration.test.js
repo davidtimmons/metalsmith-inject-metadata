@@ -22,7 +22,7 @@ describe('metalsmith-inject-metadata', () => {
         // fileKeys: '*',
     });
 
-    it('should inject metadata values into file front-matter', (done) => {
+    it('should inject metadata values into file front-matter', done => {
         Metalsmith('test/fixtures/frontmatter')
             .metadata({
                 hero: 'Batman',
@@ -35,7 +35,7 @@ describe('metalsmith-inject-metadata', () => {
             .use(debug())
             .build(function(err, files) { // eslint-disable-line
                 if (err) return done(err);
-                Object.keys(files).forEach((file) => {
+                Object.keys(files).forEach(file => {
                     const { test } = files[file];
                     const msg = 'Gotham City needs the dynamic duo, Batman and Robin!';
                     expect(test).to.equal(msg);
@@ -44,7 +44,7 @@ describe('metalsmith-inject-metadata', () => {
             });
     });
 
-    it('should inject metadata values into file contents', (done) => {
+    it('should inject metadata values into file contents', done => {
         Metalsmith('test/fixtures/contents')
             .metadata({
                 hero: 'Batman',
@@ -57,7 +57,7 @@ describe('metalsmith-inject-metadata', () => {
             .use(debug())
             .build(function(err, files) { // eslint-disable-line
                 if (err) return done(err);
-                Object.keys(files).forEach((file) => {
+                Object.keys(files).forEach(file => {
                     const contents = files[file].contents.toString();
                     const msg = 'Gotham City needs the dynamic duo,\nBatman and Robin!\n';
                     expect(contents).to.equal(msg);
@@ -66,7 +66,7 @@ describe('metalsmith-inject-metadata', () => {
             });
     });
 
-    it('should inject metadata values into all file data', (done) => {
+    it('should inject metadata values into all file data', done => {
         Metalsmith('test/fixtures/all')
             .metadata({
                 gotham: {
@@ -101,7 +101,7 @@ describe('metalsmith-inject-metadata', () => {
             .use(debug())
             .build(function(err, files) { // eslint-disable-line
                 if (err) return done(err);
-                Object.keys(files).forEach((file) => {
+                Object.keys(files).forEach(file => {
                     const fileData = files[file];
                     const vigilante = 'This is Gotham City, home of Batman.';
                     const government = 'James Gordon is the police commissioner.';
@@ -119,7 +119,7 @@ describe('metalsmith-inject-metadata', () => {
             });
     });
 
-    it('should inject nested metadata values into nested file objects', (done) => {
+    it('should inject nested metadata values into nested file objects', done => {
         Metalsmith('test/fixtures/nested')
             .metadata({
                 superheroes: {
@@ -136,7 +136,7 @@ describe('metalsmith-inject-metadata', () => {
             .use(debug())
             .build(function(err, files) { // eslint-disable-line
                 if (err) return done(err);
-                Object.keys(files).forEach((file) => {
+                Object.keys(files).forEach(file => {
                     const fileData = files[file];
                     const gothamVigilantsBats = 'Batman is one half of the dynamic duo!';
                     const contents = 'Have you read the latest Batman comic?\n';

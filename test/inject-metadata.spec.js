@@ -25,7 +25,7 @@ describe('inject-metadata.js', () => {
                 , _canHaveKeys([])
                 ];
 
-            results.forEach((result) => {
+            results.forEach(result => {
                 expect(result).to.be.true;
             });
         });
@@ -39,7 +39,7 @@ describe('inject-metadata.js', () => {
                 , _canHaveKeys(undefined)
                 ];
 
-            results.forEach((result) => {
+            results.forEach(result => {
                 expect(result).to.be.false;
             });
         });
@@ -158,7 +158,7 @@ describe('inject-metadata.js', () => {
         it('should mutate each string or Buffer value in an array', () => {
             const obj = { arr: ['batman', Buffer.from('joker')] };
             injectFile(obj, 'arr', metadata, 'hero', metadataKeyBounds);
-            obj.arr.forEach((val) => {
+            obj.arr.forEach(val => {
                 if (typeof val === 'string') {
                     expect(val).to.equal('42');
                 } else {
@@ -171,7 +171,7 @@ describe('inject-metadata.js', () => {
             const sample = { a: { b: { c: 'batman' } } };
             const obj = { arr: [{ ...sample }, [{ ...sample }], { ...sample }] };
             injectFile(obj, 'arr', metadata, 'hero', metadataKeyBounds);
-            obj.arr.forEach((value) => {
+            obj.arr.forEach(value => {
                 let val = value;
                 if (Array.isArray(val)) {
                     [val] = val;

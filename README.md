@@ -262,7 +262,7 @@ MIT
 
 [build-badge]: https://travis-ci.org/davidtimmons/metalsmith-inject-metadata.svg
 [build-url]: https://travis-ci.org/davidtimmons/metalsmith-inject-metadata
-[downloads-badge]: https://img.shields.io/npm/dm/metalsmith-inject-metadata.svg
+[downloads-badge]: https://img.shields.io/npm/dt/metalsmith-inject-metadata.svg
 [downloads-url]: https://www.npmjs.com/package/metalsmith-inject-metadata
 [version-badge]: https://img.shields.io/npm/v/metalsmith-inject-metadata.svg
 [version-url]: https://www.npmjs.com/package/metalsmith-inject-metadata
