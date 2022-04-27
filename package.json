@@ -1,6 +1,6 @@
 {
   "name": "metalsmith-inject-metadata",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A Metalsmith plugin for injecting metadata constants into source file data.",
   "keywords": [
     "metalsmith",
